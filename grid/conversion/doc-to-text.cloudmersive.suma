@@ -1,0 +1,36 @@
+profile = "conversion/doc-to-text@1.0"
+provider = "cloudmersive"
+
+//POST /convert/autodetect/to/pdf
+map ConvertDocumentToText {
+    http POST "test-api" "/convert/autodetect/to/txt" {
+      security "apikey"
+
+      request 'multipart/form-data' {
+        headers {
+          textFormattingMode = 'minimizeWhitespace'
+        }
+        body {
+          'inputFile' = input.content
+        }
+      }
+
+    response 200 "application/json" {
+      return map error if (!body.Successful) {
+        errCode = 'conversion_failed'
+        detail = 'Failed to convert the document to plain text.'
+      }
+
+      map result {
+        text = body.TextResult
+      }
+    }
+
+    response {
+      map error {
+        errCode = "unknown_response"
+        detail = JSON.stringify(body, null, 2)
+      }
+    }
+}
+}

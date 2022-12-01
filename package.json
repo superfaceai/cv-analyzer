@@ -1,0 +1,20 @@
+{
+  "name": "ats-cv-demo",
+  "version": "1.0.0",
+  "description": "ATS CV extraction demo",
+  "main": "src/index.js",
+  "author": "Jan Halama",
+  "license": "MIT",
+  "scripts": {
+    "start": "sf compile & node ./src/index.js",
+    "format": "prettier --check ./src/**/*",
+    "format:fix": "prettier --write ./src/**/*"
+  },
+  "dependencies": {
+    "@superfaceai/one-sdk": "^2.1.0",
+    "dotenv": "^16.0.3"
+  },
+  "devDependencies": {
+    "prettier": "^2.8.0"
+  }
+}

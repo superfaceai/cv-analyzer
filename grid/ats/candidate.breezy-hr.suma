@@ -1,0 +1,288 @@
+profile = "ats/candidate@1.0"
+provider = "breezy-hr"
+
+map GetCV {
+    fileName = undefined
+    documents = []
+
+    call GetCandidateCVMetadata(
+        accessToken = parameters.ACCESS_TOKEN,
+        companyId = parameters.COMPANY_ID,
+        jobId = input.jobId,
+        candidateId = input.candidateId
+    ) {
+        return map error if (outcome.error) outcome.error
+
+        return map error if(!outcome.data.fileName) {
+            title = "not_found"
+            detail = "CV not found"
+        }
+
+        fileName = outcome.data.fileName
+    }
+
+    call GetCandidateDocuments (
+        accessToken = parameters.ACCESS_TOKEN,
+        companyId = parameters.COMPANY_ID,
+        jobId = input.jobId,
+        candidateId = input.candidateId
+    ) {
+        return map error if (outcome.error) outcome.error
+
+        return map error if(!outcome.data.length) {
+            title = "not_found"
+            detail = "CV not found"
+        }
+
+        documents = outcome.data
+    }
+
+    cvs = documents.filter(document => {
+        return fileName.startsWith(document.fileName)
+    })
+
+     return map error if(!cvs.length) {
+        title = "not_found"
+        detail = "CV not found"
+    }
+
+     return map result {
+        createdAt = cvs[0].createdAt,
+        fileName = cvs[0].fileName,
+        fileContent = call GetCandidateCV(absoluteUrl = cvs[0].url)
+    }
+}
+
+map GetCandidateById {
+    http GET "/v3/company/{ parameters.COMPANY_ID }/position/{ input.jobId }/candidate/{ input.candidateId }" {
+        request {
+            headers {
+                Authorization = parameters.ACCESS_TOKEN
+            }
+        }
+
+        response 200  "application/json"  {
+          candidate = call MapCandidate(candidate = body)
+
+          return map result candidate
+        }
+
+        response "application/json" {
+            return map error if (body.error) {
+                title = body.error.type
+                detail = body.error.message
+            }
+
+            map error {
+                title = "unknown_response"
+                detail = JSON.stringify(body, null, 2)
+            }
+        }
+    }
+}
+
+
+map ListCandidates {
+    http GET "/v3/company/{ parameters.COMPANY_ID }/position/{ input.jobId }/candidates" {
+    request {
+      headers {
+        Authorization = parameters.ACCESS_TOKEN
+      }
+    }
+
+    response 200 "application/json" {
+        candidates = body.map(candidate => {
+          let education = candidate.education || []
+          let workHistory = candidate.work_history || []
+
+          return {
+            id: candidate._id,
+            name: candidate.name,
+            email: candidate.email_address,
+            phone: candidate.phone_number,
+            created: candidate.creation_date,
+          }
+        })
+
+        map result {
+          candidates = candidates
+        }
+    }
+
+    response "application/json" {
+      return map error if (body.error) {
+        title = body.error.type
+        detail = body.error.message
+      }
+
+      map error {
+        title = "unknown_response"
+        detail = JSON.stringify(body, null, 2)
+      }
+    }
+  }
+}
+
+//TODO: update education and work history of the candidate
+map UpdateCandidate {
+   candidate = input.candidate
+
+   http PUT "/v3/company/{ parameters.COMPANY_ID }/position/{ input.jobId }/candidate/{ input.candidate.id }" {
+        request {
+          headers {
+              Authorization = parameters.ACCESS_TOKEN
+          }
+
+          body {
+            name = candidate.name || undefined
+            email_address = candidate.email || undefined
+            phone_number = candidate.phone || undefined
+            address = candidate.email || undefined
+          }
+        }
+
+        response 200  "application/json"  {
+          candidate = call MapCandidate(candidate = body)
+
+          return map result {
+            candidate = candidate
+          }
+        }
+
+        response "application/json" {
+            return map error if (body.error) {
+                title = body.error.type
+                detail = body.error.message
+            }
+
+            map error {
+                title = "unknown_response"
+                detail = JSON.stringify(body, null, 2)
+            }
+        }
+    }
+}
+
+operation GetCandidateCVMetadata {
+    http GET "/v3/company/{ args.companyId }/position/{ args.jobId }/candidate/{ args.candidateId }" {
+        request {
+            headers {
+                Authorization = args.accessToken
+            }
+        }
+
+        response 200 "application/json" {
+            return {
+                fileName = body.resume.file_name
+            }
+        }
+
+         response "application/json" {
+            fail if (body.error) {
+                title = body.error.type
+                detail = body.error.message
+            }
+
+            fail {
+                title = "unknown_response"
+                detail = JSON.stringify(body, null, 2)
+            }
+        }
+    }
+}
+
+operation GetCandidateDocuments {
+    http GET "/v3/company/{ args.companyId }/position/{ args.jobId }/candidate/{ args.candidateId }/documents" {
+        request {
+            headers {
+                Authorization = args.accessToken
+            }
+        }
+
+        response 200 "application/json" {
+             mappedDocuments = body.map(document => {
+                return {
+                    url: document.file_url,
+                    createdAt: document.creation_date,
+                    fileName: document.file_name
+                }
+            })
+
+            return mappedDocuments
+        }
+
+         response "application/json" {
+            fail if (body.error) {
+                title = body.error.type
+                detail = body.error.message
+            }
+
+            fail {
+                title = "unknown_response"
+                detail = JSON.stringify(body, null, 2)
+            }
+        }
+     }
+}
+
+operation GetCandidateCV {
+    relativeUrl = args.absoluteUrl.replace('https://app.breezy.hr/','')
+
+    http GET "app" "/{relativeUrl}" {
+        response 200 {
+            return body
+        }
+
+        response {
+          fail if (body.error) {
+            title = body.error.type
+            detail = body.error.message
+        }
+
+        fail {
+            title = "unknown_response"
+            detail = JSON.stringify(body, null, 2)
+        }
+    }
+  }
+}
+
+operation MapCandidate {
+  candidate = args.candidate
+  education = candidate.education || []
+  workHistory = candidate.work_history || []
+
+  return {
+    id = candidate._id,
+    name = candidate.name,
+    address = candidate.address,
+    email = candidate.email_address,
+    phone = candidate.phone_number,
+    created = candidate.creation_date,
+    education = education.map(education => {
+        return {
+            schoolName: education.school_name,
+            fieldOfStudy: education.field_of_study,
+            degree: education.degree
+        }
+    }),
+    workHistory = workHistory.map(work => {
+        let startDate =  work.start_date || {}
+        let endDate = work.end_date || {}
+
+        return {
+            companyName: work.company_name,
+            title: work.title,
+            summary: work.summary,
+            startDate: {
+                month: startDate.month,
+                year: startDate.year
+            },
+            endDate: {
+                month: endDate.month,
+                year: endDate.year
+            }
+        }
+    })
+  }
+}

@@ -1,0 +1,24 @@
+name = "ats/job"
+version = "1.0.0"
+
+"""
+List jobs
+"""
+usecase ListJobs {
+  result {
+    jobs [Job!]!
+  }
+
+  error Error
+
+}
+
+model Job {
+    id! string!
+    name
+  }
+
+model Error {
+  title!
+  detail
+}

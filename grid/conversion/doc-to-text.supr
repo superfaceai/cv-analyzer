@@ -1,0 +1,24 @@
+name = "conversion/doc-to-text"
+version = "1.0.0"
+
+"""
+Convert document in pdf, docx, xlsx or pptx format to plain text
+"""
+usecase ConvertDocumentToText {
+  input {
+    name string
+    content
+  }
+
+  result {
+    text string
+  }
+
+  error Error
+
+}
+
+model Error {
+  errCode!
+  detail
+}

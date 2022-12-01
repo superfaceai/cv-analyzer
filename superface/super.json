@@ -1,0 +1,93 @@
+{
+  "profiles": {
+    "ats/candidate": {
+      "file": "../grid/ats/candidate.supr",
+      "providers": {
+        "breezy-hr": {
+          "file": "../grid/ats/candidate.breezy-hr.suma"
+        }
+      },
+      "priority": [
+        "breezy-hr"
+      ]
+    },
+    "ats/company": {
+      "file": "../grid/ats/company.supr",
+      "providers": {
+        "breezy-hr": {
+          "file": "../grid/ats/company.breezy-hr.suma"
+        }
+      },
+      "priority": [
+        "breezy-hr"
+      ]
+    },
+    "ats/job": {
+      "file": "../grid/ats/job.supr",
+      "providers": {
+        "breezy-hr": {
+          "file": "../grid/ats/job.breezy-hr.suma"
+        }
+      },
+      "priority": [
+        "breezy-hr"
+      ]
+    },
+    "authentication/username-password-login": {
+      "file": "../grid/authentication/username-password-login.supr",
+      "priority": [
+        "breezy-hr"
+      ],
+      "providers": {
+        "breezy-hr": {
+          "file": "../grid/authentication/username-password-login.breezy-hr.suma"
+        }
+      }
+    },
+    "conversion/doc-to-text": {
+      "file": "../grid/conversion/doc-to-text.supr",
+      "providers": {
+        "cloudmersive": {
+          "file": "../grid/conversion/doc-to-text.cloudmersive.suma"
+        }
+      },
+      "priority": [
+        "cloudmersive"
+      ]
+    },
+    "ai/completion": {
+      "file": "../grid/ai/completion.supr",
+      "providers": {
+        "openai": {
+          "file": "../grid/ai/completion.openai.suma"
+        }
+      },
+      "priority": [
+        "openai"
+      ]
+    }
+  },
+  "providers": {
+    "breezy-hr": {
+      "file": "../providers/breezy-hr.provider.json"
+    },
+    "cloudmersive": {
+      "file": "../providers/cloudmersive.provider.json",
+      "security": [
+        {
+          "id": "apikey",
+          "apikey": "$CLOUDMERSIVE_API_KEY"
+        }
+      ]
+    },
+    "openai": {
+      "file": "../providers/openai.provider.json",
+      "security": [
+        {
+          "id": "bearer_token",
+          "token": "$OPENAI_SECRET_KEY"
+        }
+      ]
+    }
+  }
+}

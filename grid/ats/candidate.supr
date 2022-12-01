@@ -1,0 +1,136 @@
+name = "ats/candidate"
+version = "1.0.0"
+
+"""
+Get candidate by ID
+"""
+usecase GetCandidateById {
+    input {
+    """
+    Job ID
+    Uniquie identifier of the job the candidate is applying for
+    """
+    jobId
+    """
+    Contact ID
+    Uniquie identifier of the contact
+    """
+    candidateId!
+  }
+
+  result Candidate!
+
+  error Error
+
+}
+
+"""
+Get CV (Curriculum Vitae) of the candidate
+"""
+
+usecase GetCV {
+    input {
+    """
+    Job ID
+    Uniquie identifier of the job the candidate is applying for, required by some providers
+    """
+    jobId
+    """
+    Contact ID
+    Uniquie identifier of the contact
+    """
+    candidateId!
+  }
+
+  result {
+    createdAt
+    fileName
+    fileContent
+  }
+
+  error Error
+
+}
+
+"""
+List candidates
+"""
+usecase ListCandidates {
+  input {
+    """
+    Job ID
+    Uniquie identifier of the job the candidate is applying for
+    """
+    jobId
+  }
+
+  result {
+    candidates [{
+        id! string!
+        name
+        address
+        email
+        phone
+        created
+    }!]!
+  }
+
+  error Error
+
+}
+
+"""
+Update candidate
+"""
+usecase UpdateCandidate {
+  input {
+    """
+    Job ID
+    Uniquie identifier of the job the candidate is applying for
+    """
+    jobId
+
+    """
+    Candidate
+    """
+    candidate! Candidate!
+  }
+
+  result {
+    candidate! Candidate!
+  }
+
+  error Error
+
+}
+
+model Candidate {
+    id! string!
+    name
+    address
+    email
+    phone
+    created
+    education [{
+        schoolName
+        fieldOfStudy
+        degree
+    }]
+    workHistory [{
+        companyName
+        title
+        summary
+        startDate ShortDate
+        endDate ShortDate
+    }]
+  }
+
+  model Error {
+    title!
+    detail
+  }
+
+  model ShortDate {
+    date number
+    year number
+  }

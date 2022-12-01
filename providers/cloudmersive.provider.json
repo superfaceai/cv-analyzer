@@ -1,0 +1,23 @@
+{
+  "name": "cloudmersive",
+  "services": [
+    {
+      "id": "default",
+      "baseUrl": "https://api.cloudmersive.com"
+    },
+    {
+      "id": "test-api",
+      "baseUrl": "https://testapi.cloudmersive.com"
+    }
+
+  ],
+  "defaultService": "default",
+  "securitySchemes": [
+    {
+      "id": "apikey",
+      "type": "apiKey",
+      "in": "header",
+      "name": "Apikey"
+    }
+  ]
+}

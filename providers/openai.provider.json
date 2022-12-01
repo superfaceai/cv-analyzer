@@ -1,0 +1,18 @@
+{
+  "name": "openai",
+  "services": [
+    {
+      "id": "default",
+      "baseUrl": "https://api.openai.com"
+    }
+
+  ],
+  "defaultService": "default",
+  "securitySchemes": [
+    {
+      "id": "bearer_token",
+      "type": "http",
+      "scheme": "bearer"
+    }
+  ]
+}

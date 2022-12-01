@@ -1,0 +1,65 @@
+{
+  "firstName": "Jan",
+  "lastName": "Halama",
+  "address": "Krásná 76, 468 21 Pěnčín",
+  "phone":"+420 774 770 433",
+  "education": {
+      "schoolName": "Technical university in Liberec, Faculty of Mechatronics, Informatics and Interdisciplinary Studies",
+      "fieldOfStudy": "",
+      "degree": "1997 – 2002"
+  }, 
+  "workHistory": [
+    {
+      "companyName": "Jablotron Alarms a. s.",
+      "title": "Software Architect",
+      "summary": "Design and implementation of Identity Provider (supporting OAut2, OpenId Connect). Product owner of microservice infrastructure deployment. Continuous integration pipeline and Docker Swarm runtime. Business requirements analysis.",
+      "startDate": {
+        "month": "7",
+        "year": "2017"
+      }, 
+      "endDate": {
+        "month": "now",
+        "year": "now"
+      }
+    }, 
+    {
+      "companyName": "Skoda Auto a. s.",
+      "title": "Software Architect",
+      "summary": "Technical lead of Portable Check-In project and design of REST APIs",
+      "startDate": {
+        "month": "10",
+        "year": "2016"
+      },
+      "endDate": {
+        "month": "6",
+        "year": "2017"
+      }
+    }, 
+    {
+      "companyName": "JABLOCOM s.r.o.",
+      "title": "Product Manager, Senior Software Engineer",
+      "summary": "Product manager of www.jablotool.com. Development team management. Software development.",
+      "startDate": {
+        "month": "8",
+        "year": "2005"
+      }, 
+      "endDate": {
+        "month": "9",
+        "year": "2016"
+      }
+    }, 
+    {
+      "companyName": "Jablotron a. s.",
+      "title": "Senior Sofware Engineer",
+      "summary": "Development of web and desktop applications. Development of production testing software. Design and implementation of communication protocol for JABLOCOM devices",
+      "startDate":  {
+        "month": "6",
+        "year": "2003"
+      }, 
+      "endDate": {
+        "month": "9", 
+        "year": "2005"
+      }
+    }
+  ]
+}

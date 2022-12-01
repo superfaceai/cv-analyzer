@@ -1,0 +1,37 @@
+profile = "ats/company@1.0"
+provider = "breezy-hr"
+
+map ListCompanies {
+    http GET "/v3/companies" {
+    request {
+      headers {
+        Authorization = parameters.ACCESS_TOKEN
+      }
+    }
+
+    response 200 "application/json" {
+        companies = body.map(company => {
+          return {
+            id: company._id,
+            name: company.name
+          }
+        })
+
+        map result {
+          companies = companies
+        }
+    }
+
+    response "application/json" {
+      return map error if (body.error) {
+        title = body.error.message
+        detail = body.error.type
+      }
+
+      map error {
+        title = "unknown_response"
+        detail = JSON.stringify(body, null, 2)
+      }
+    }
+}
+}
