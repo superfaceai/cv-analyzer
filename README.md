@@ -1,20 +1,15 @@
-# ats-cv-demo
+# CV Analyzer Demo
 
-Demo of ATS (Applicant Trancking System) integration.
-
-This demo:
-- loads CVs of Job candidates
-- converts CVs to text
-- parses CVs - the output is structured candidate data in json format
-- updates candidate data in ATS system with data parsed from CV
+This demo application loads CV of candidate from ATS (Applicant Tracking System) who have applied for a given job, converts it to text, parses it into machine-readable data, and then updates candidate in the ATS with the data obtained from the CV.
 
 Providers used in this demo:
-- Breezy HR - ATS
-- Cloudmersive - CV document conversion to text
-- OpenAI - Text to structured candidate data
+
+- Workable - for ATS related use cases
+- Cloudmersive - for the conversion of document to plain text
+- OpenAI - for the GPT text completion
 
 To run the demo:
 1. `yarn install`
 2. `cp .env.example .env`
-3. set credentials for all providers in .env file
+3. set credentials and parameters for all providers in .env file
 4. `yarn start`
