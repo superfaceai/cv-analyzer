@@ -6,7 +6,7 @@
   "author": "Jan Halama",
   "license": "MIT",
   "scripts": {
-    "start": "node ./src/index.js",
+    "start": "node src/index.js",
     "format": "prettier --check ./src/**/*",
     "format:fix": "prettier --write ./src/**/*"
   },
