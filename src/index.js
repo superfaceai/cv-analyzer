@@ -1,43 +1,32 @@
-const { BinaryData, SuperfaceClient } = require('@superfaceai/one-sdk');
+const { SuperfaceClient } = require('@superfaceai/one-sdk');
 const { inspect } = require('util');
 
-const dotenv = require('dotenv');
-const { chooseOne } = require('./choose-one');
-const fetch = require('node-fetch');
-
-dotenv.config();
-
-const ATS_PROVIDER = 'workable';
-
-const WORKABLE_PERFORM_OPTIONS = {
-  provider: ATS_PROVIDER,
-  parameters: {
-    SUBDOMAIN: process.env.WORKABLE_SUBDOMAIN || 'subdomain',
-  },
-  security: {
-    bearer_token: {
-      token: process.env.WORKABLE_TOKEN,
-    },
-  },
-};
+const { chooseOne } = require('./choose_one');
+const { listCandidates } = require('./list_candidates');
+const {
+  WORKABLE_PROVIDER,
+  CLOUDMERSIVE_PROVIDER,
+  OPENAI_PROVIDER,
+} = require('./sdk_config');
+const { getCVUrl } = require('./get_cv');
+const { analyzeCV } = require('./analyze_cv');
+const { updateCandidate } = require('./update_candidate');
+const { listJobs } = require('./list_jobs');
+const { convertCVToText } = require('./convert_cv_to_text');
 
 const sdk = new SuperfaceClient();
+const atsProvider = WORKABLE_PROVIDER;
+const convertDocToTextProvider = CLOUDMERSIVE_PROVIDER;
+const textCompletionProvider = OPENAI_PROVIDER;
 
 async function run() {
   // #1 - List open job positions from your ATS system
-  let jobs = [];
-  try {
-    const listJobsProfile = await sdk.getProfile('recruitment/list-jobs@1.0.0');
-    const listJobsResult = await listJobsProfile
-      .getUseCase('ListJobs')
-      .perform({}, WORKABLE_PERFORM_OPTIONS);
-    jobs = listJobsResult.unwrap().jobs;
-  } catch (error) {
-    console.error('Failed to list jobs');
-    return;
-  }
 
-  if (jobs.length <= 0) {
+  let jobs = await listJobs(sdk, atsProvider);
+
+  if (!jobs) return;
+
+  if (jobs.length === 0) {
     console.log('No open job positions.');
     return;
   }
@@ -58,26 +47,11 @@ async function run() {
 
   // #2 - List candidates that applied to the open job position
 
-  let candidates = [];
-  try {
-    const listCandidatesProfile = await sdk.getProfile(
-      'recruitment/list-candidates@1.0.0'
-    );
-    const listCandidatesResult = await listCandidatesProfile
-      .getUseCase('ListCandidates')
-      .perform(
-        {
-          jobId,
-        },
-        WORKABLE_PERFORM_OPTIONS
-      );
-    candidates = listCandidatesResult.unwrap().candidates;
-  } catch (error) {
-    console.error('Failed to list candidates');
-    return;
-  }
+  let candidates = await listCandidates(sdk, atsProvider, jobId);
 
-  if (candidates.length <= 0) {
+  if (!candidates) return;
+
+  if (candidates.length === 0) {
     console.log('No candidates applied for the job position.');
     return;
   }
@@ -98,113 +72,32 @@ async function run() {
 
   // #3 - Get candidate CV
 
-  let cvDocumentUrl;
-  try {
-    const getCVProfile = await sdk.getProfile('recruitment/get-cv@1.0.0');
-    const getCVResult = await getCVProfile.getUseCase('GetCV').perform(
-      {
-        candidateId,
-      },
-      WORKABLE_PERFORM_OPTIONS
-    );
-    cvDocumentUrl = getCVResult.unwrap().cv
-      .documentUrl;
-  } catch (error) {
-    console.error('Failed to get candidate CV.');
+  let cvDocumentUrl = await getCVUrl(sdk, atsProvider, candidateId);
+
+  if (!cvDocumentUrl) {
     return;
   }
 
   // #4 - Convert CV to plain text
 
-  const docToTextProfile = await sdk.getProfile(
-    'file-conversion/doc-to-text@1.0.0'
-  );
+  const cvText = convertCVToText(sdk, convertDocToTextProvider, cvDocumentUrl);
 
-  let cvText;
-  try {
-    const fetchDocumentResponse = await fetch(cvDocumentUrl);
-
-    if (!fetchDocumentResponse.body) {
-      console.error('Failed to fetch CV document.');
-      return;
-    }
-
-    const result = await docToTextProfile
-      .getUseCase('ConvertDocumentToText')
-      .perform(
-        {
-          fileName: 'cv.pdf',
-          content: BinaryData.fromStream(fetchDocumentResponse.body),
-        },
-        {
-          provider: 'cloudmersive',
-          parameters: {
-            API_INSTANCE: 'testapi',
-          },
-          security: {
-            apikey: {
-              apikey: process.env.CLOUDMERSIVE_API_KEY,
-            },
-          },
-        }
-      );
-
-    cvText = result.unwrap().text;
-  } catch (error) {
-    console.error('Failed to convert CV to plain text.');
+  if (!cvText) {
+    return;
   }
 
   // #5 - Analyze the CV
 
-  let analyzeCVOutcome;
-  try {
-    const generateTextProfile = await sdk.getProfile('ai/generate-text@1.0.0');
+  let analyzedCV = await analyzeCV(sdk, textCompletionProvider, cvText);
 
-    const promptCommand =
-      'Parse following job applicant resume and return json object with properties { "firstName", "lastName", "address", "phone", "education": [{"school", "fieldOfStudy"}] , "workHistory": [{"company", "position", "summary", "startedAt_ISO8601":"YYYY-MM-DD", "endedAt_ISO8601":"YYYY-MM-DD"}] }. ';
-
-    const result = await generateTextProfile.getUseCase('CompleteText').perform(
-      {
-        prompt: promptCommand + cvText,
-        creativity: 0.8,
-        approxMaxWords: 1000,
-        model: 'large',
-      },
-      {
-        provider: 'openai',
-        security: {
-          bearer: {
-            token: process.env.OPENAI_SECRET_KEY,
-          },
-        },
-      }
-    );
-
-    analyzeCVOutcome = result.unwrap();
-  } catch (error) {
-    console.error('Failed to analyze CV.', error);
-  }
-
-  if (!analyzeCVOutcome?.completions.length) {
-    console.error('No outcome from CV analysis.');
+  if (!analyzedCV) {
     return;
   }
 
-  // #6 - Parse text completion outcome to JSON
-
-  let analyzedCVJson;
-
-  try {
-    analyzedCVJson = JSON.parse(analyzeCVOutcome.completions[0]);
-  } catch {
-    console.error('Failed to parse text completion outcome to JSON');
-    return;
-  }
-
-  console.log('Analyzed CV: ', inspect(analyzedCVJson, false, 15, true));
+  console.log('Analyzed CV: ', inspect(analyzedCV, false, 15, true));
 
   const continueAndUpdateCandidate = await chooseOne(
-    `Do you want to update candidate data in ${ATS_PROVIDER} ATS`,
+    `Do you want to update candidate data in ${atsProvider} ATS`,
     [
       { name: 'Yes', value: true },
       { name: 'No', value: false },
@@ -218,24 +111,14 @@ async function run() {
 
   // #7 - Update candidate data in ATS
 
-  try {
-    const profile = await sdk.getProfile('recruitment/update-candidate@1.0.0');
+  const updated = await updateCandidate(sdk, atsProvider, {
+    candidateId: candidateId,
+    ...analyzedCV,
+  });
 
-    const result = await profile.getUseCase('UpdateCandidate').perform(
-      {
-        candidateId: candidateId,
-        ...analyzedCVJson,
-      },
-      WORKABLE_PERFORM_OPTIONS
-    );
-
-    result.unwrap();
-  } catch (error) {
-    console.error('Failed to update candidate data.', error);
-    return;
+  if (updated) {
+    console.log('🎉 Candidate data successfully updated.');
   }
-
-  console.log('🎉 Candidate data successfully updated.');
 }
 
 run();
