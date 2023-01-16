@@ -1,7 +1,7 @@
 {
-  "name": "ats-cv-demo",
+  "name": "cv-analyzer",
   "version": "1.0.0",
-  "description": "ATS CV extraction demo",
+  "description": "CV Analyzer Demo",
   "main": "src/index.js",
   "author": "Jan Halama",
   "license": "MIT",
