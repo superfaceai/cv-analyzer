@@ -1,9 +1,9 @@
-import { BinaryData, SuperfaceClient } from '@superfaceai/one-sdk';
-import { inspect } from 'util';
+const { BinaryData, SuperfaceClient } = require('@superfaceai/one-sdk');
+const { inspect } = require('util');
 
-import dotenv from 'dotenv';
-import { chooseOne } from './choose-one';
-import fetch from 'node-fetch';
+const dotenv = require('dotenv');
+const { chooseOne } = require('./choose-one');
+const fetch = require('node-fetch');
 
 dotenv.config();
 
@@ -31,16 +31,7 @@ async function run() {
     const listJobsResult = await listJobsProfile
       .getUseCase('ListJobs')
       .perform({}, WORKABLE_PERFORM_OPTIONS);
-    jobs = (
-      listJobsResult.unwrap() as {
-        jobs: [
-          {
-            id: string;
-            name: string;
-          }
-        ];
-      }
-    ).jobs;
+    jobs = listJobsResult.unwrap().jobs;
   } catch (error) {
     console.error('Failed to list jobs');
     return;
@@ -51,7 +42,7 @@ async function run() {
     return;
   }
 
-  let jobId = await chooseOne<string>(
+  let jobId = await chooseOne(
     'Pick job position',
     jobs.map(job => {
       return {
@@ -80,16 +71,7 @@ async function run() {
         },
         WORKABLE_PERFORM_OPTIONS
       );
-    candidates = (
-      listCandidatesResult.unwrap() as {
-        candidates: [
-          {
-            id: string;
-            name: string;
-          }
-        ];
-      }
-    ).candidates;
+    candidates = listCandidatesResult.unwrap().candidates;
   } catch (error) {
     console.error('Failed to list candidates');
     return;
@@ -125,7 +107,7 @@ async function run() {
       },
       WORKABLE_PERFORM_OPTIONS
     );
-    cvDocumentUrl = (getCVResult.unwrap() as { cv: { documentUrl: string } }).cv
+    cvDocumentUrl = getCVResult.unwrap().cv
       .documentUrl;
   } catch (error) {
     console.error('Failed to get candidate CV.');
@@ -167,7 +149,7 @@ async function run() {
         }
       );
 
-    cvText = (result.unwrap() as { text: string }).text;
+    cvText = result.unwrap().text;
   } catch (error) {
     console.error('Failed to convert CV to plain text.');
   }
@@ -198,7 +180,7 @@ async function run() {
       }
     );
 
-    analyzeCVOutcome = result.unwrap() as { completions: string[] };
+    analyzeCVOutcome = result.unwrap();
   } catch (error) {
     console.error('Failed to analyze CV.', error);
   }
@@ -210,22 +192,7 @@ async function run() {
 
   // #6 - Parse text completion outcome to JSON
 
-  let analyzedCVJson: {
-    firstName: string;
-    lastName: string;
-    address: string;
-    phone: string;
-    education: [{ schoolName: string; fieldOfStudy: string }];
-    workHistory: [
-      {
-        companyName: string;
-        title: string;
-        summary: string;
-        startedAt: string;
-        endedAt: string;
-      }
-    ];
-  };
+  let analyzedCVJson;
 
   try {
     analyzedCVJson = JSON.parse(analyzeCVOutcome.completions[0]);
@@ -236,7 +203,7 @@ async function run() {
 
   console.log('Analyzed CV: ', inspect(analyzedCVJson, false, 15, true));
 
-  const continueAndUpdateCandidate = await chooseOne<boolean>(
+  const continueAndUpdateCandidate = await chooseOne(
     `Do you want to update candidate data in ${ATS_PROVIDER} ATS`,
     [
       { name: 'Yes', value: true },
