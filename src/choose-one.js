@@ -1,14 +1,9 @@
-import inquirer from 'inquirer';
+const inquirer = require('inquirer');
 
-export type Item<T> = {
-  name: string;
-  value: T;
-};
-
-export function chooseOne<T>(
-  question: string,
-  items: Item<T>[]
-): Promise<T | undefined> {
+exports.chooseOne = (
+  question,
+  items
+) => {
   return inquirer
     .prompt({
       type: 'list',
@@ -21,7 +16,7 @@ export function chooseOne<T>(
       }),
     })
     .then(answers => {
-      return answers[question] as T;
+      return answers[question];
     })
     .catch(error => {
       console.error(`${question} failed`, error);

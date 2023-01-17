@@ -12,4 +12,4 @@ To run the demo:
 1. `yarn install`
 2. `cp .env.example .env`
 3. set credentials and parameters for all providers in .env file
-4. `yarn start`
+4. `npm start`
