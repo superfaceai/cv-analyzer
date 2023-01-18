@@ -1,9 +1,7 @@
 const fetch = require('node-fetch');
 const { BinaryData } = require('@superfaceai/one-sdk');
 
-const { getProviderPerformOptions } = require('./sdk_config');
-
-exports.listCandidates = async (sdk, provider, jobId) => {
+exports.listCandidates = async (sdk, providerOptions, jobId) => {
   try {
     const listCandidatesProfile = await sdk.getProfile(
       'recruitment/list-candidates@1.0.0'
@@ -14,7 +12,7 @@ exports.listCandidates = async (sdk, provider, jobId) => {
         {
           jobId,
         },
-        getProviderPerformOptions(provider)
+        providerOptions
       );
     return listCandidatesResult.unwrap().candidates;
   } catch (error) {
@@ -23,12 +21,12 @@ exports.listCandidates = async (sdk, provider, jobId) => {
   }
 };
 
-exports.listJobs = async (sdk, provider) => {
+exports.listJobs = async (sdk, providerOptions) => {
   try {
     const listJobsProfile = await sdk.getProfile('recruitment/list-jobs@1.0.0');
     const listJobsResult = await listJobsProfile
       .getUseCase('ListJobs')
-      .perform({}, getProviderPerformOptions(provider));
+      .perform({}, providerOptions);
     return listJobsResult.unwrap().jobs;
   } catch (error) {
     console.error('Failed to list jobs');
@@ -36,14 +34,14 @@ exports.listJobs = async (sdk, provider) => {
   }
 };
 
-exports.getCVUrl = async (sdk, provider, candidateId) => {
+exports.getCVUrl = async (sdk, providerOptions, candidateId) => {
   try {
     const getCVProfile = await sdk.getProfile('recruitment/get-cv@1.0.0');
     const getCVResult = await getCVProfile.getUseCase('GetCV').perform(
       {
         candidateId,
       },
-      getProviderPerformOptions(provider)
+      providerOptions
     );
     return getCVResult.unwrap().cv.documentUrl;
   } catch (error) {
@@ -52,7 +50,7 @@ exports.getCVUrl = async (sdk, provider, candidateId) => {
   }
 };
 
-exports.convertCVToText = async (sdk, provider, cvDocumentUrl) => {
+exports.convertCVToText = async (sdk, providerOptions, cvDocumentUrl) => {
   const docToTextProfile = await sdk.getProfile(
     'file-conversion/doc-to-text@1.0.0'
   );
@@ -72,7 +70,7 @@ exports.convertCVToText = async (sdk, provider, cvDocumentUrl) => {
           fileName: 'cv.pdf',
           content: BinaryData.fromStream(fetchDocumentResponse.body),
         },
-        getProviderPerformOptions(provider)
+        providerOptions
       );
 
     return result.unwrap().text;
@@ -81,7 +79,7 @@ exports.convertCVToText = async (sdk, provider, cvDocumentUrl) => {
   }
 };
 
-exports.analyzeCV = async (sdk, provider, cvText) => {
+exports.analyzeCV = async (sdk, providerOptions, cvText) => {
   try {
     const generateTextProfile = await sdk.getProfile('ai/generate-text@1.0.0');
 
@@ -95,7 +93,7 @@ exports.analyzeCV = async (sdk, provider, cvText) => {
         approxMaxWords: 1000,
         model: 'large',
       },
-      getProviderPerformOptions(provider)
+      providerOptions
     );
 
     analyzeCVOutcome = result.unwrap();
@@ -138,13 +136,13 @@ exports.analyzeCV = async (sdk, provider, cvText) => {
   }
 };
 
-exports.updateCandidate = async (sdk, provider, candidate) => {
+exports.updateCandidate = async (sdk, providerOptions, candidate) => {
   try {
     const profile = await sdk.getProfile('recruitment/update-candidate@1.0.0');
 
     const result = await profile
       .getUseCase('UpdateCandidate')
-      .perform(candidate, getProviderPerformOptions(provider));
+      .perform(candidate, providerOptions);
 
     result.unwrap();
 
