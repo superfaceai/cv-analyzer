@@ -80,8 +80,8 @@ async function run() {
 
   // #4 - Convert CV to plain text
 
-  const cvText = await convertCVToText(sdk, convertDocToTextProvider, cvDocumentUrl);
-
+  let cvText = await convertCVToText(sdk, convertDocToTextProvider, cvDocumentUrl);
+  cvText = cvText.replace(/(?:\r\n|\r|\n)/g, ' ');
 
   if (!cvText) {
     return;
