@@ -1,9 +1,6 @@
 const inquirer = require('inquirer');
 
-exports.chooseOne = (
-  question,
-  items
-) => {
+exports.chooseOne = (question, items) => {
   return inquirer
     .prompt({
       type: 'list',
@@ -22,4 +19,4 @@ exports.chooseOne = (
       console.error(`${question} failed`, error);
       return undefined;
     });
-}
+};
