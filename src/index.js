@@ -2,17 +2,19 @@ const { SuperfaceClient } = require('@superfaceai/one-sdk');
 const { inspect } = require('util');
 
 const { chooseOne } = require('./choose_one');
-const { listCandidates } = require('./list_candidates');
 const {
   WORKABLE_PROVIDER,
   CLOUDMERSIVE_PROVIDER,
   OPENAI_PROVIDER,
 } = require('./sdk_config');
-const { getCVUrl } = require('./get_cv');
-const { analyzeCV } = require('./analyze_cv');
-const { updateCandidate } = require('./update_candidate');
-const { listJobs } = require('./list_jobs');
-const { convertCVToText } = require('./convert_cv_to_text');
+const {
+  getCVUrl,
+  analyzeCV,
+  updateCandidate,
+  listCandidates,
+  listJobs,
+  convertCVToText,
+} = require('./use_cases');
 
 const sdk = new SuperfaceClient();
 const atsProvider = WORKABLE_PROVIDER;
@@ -80,7 +82,11 @@ async function run() {
 
   // #4 - Convert CV to plain text
 
-  let cvText = await convertCVToText(sdk, convertDocToTextProvider, cvDocumentUrl);
+  let cvText = await convertCVToText(
+    sdk,
+    convertDocToTextProvider,
+    cvDocumentUrl
+  );
   cvText = cvText.replace(/(?:\r\n|\r|\n)/g, ' ');
 
   if (!cvText) {
