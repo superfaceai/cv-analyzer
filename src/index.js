@@ -89,7 +89,7 @@ async function run() {
 
   // #5 - Analyze the CV
 
-  let analyzedCV = await analyzeCV(sdk, textCompletionProvider, cvText);
+  const analyzedCV = await analyzeCV(sdk, textCompletionProvider, cvText);
 
   if (!analyzedCV) {
     return;
@@ -113,7 +113,7 @@ async function run() {
   // #7 - Update candidate data in ATS
 
   const updated = await updateCandidate(sdk, atsProvider, {
-    candidateId: candidateId,
+    candidateId,
     ...analyzedCV,
   });
 
